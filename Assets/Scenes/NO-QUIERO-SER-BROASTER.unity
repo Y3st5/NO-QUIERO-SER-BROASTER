@@ -476,11 +476,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &274429833 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8083766863240498508, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
-  m_PrefabInstance: {fileID: 856707290}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &289363911
 GameObject:
   m_ObjectHideFlags: 0
@@ -700,20 +695,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: KinematicSoup.SceneFusion::KS.SceneFusion.Client.Unity.sfGuidList
   ObjectGuids:
-  - GameObject: {fileID: 1577082654}
-    Guid: 94eb5313-0000-63f8-0000-c01f000060ce
   - GameObject: {fileID: 289363911}
     Guid: 3592a8ef-0000-0700-e3c0-d9d7000060ce
   - GameObject: {fileID: 2003862372}
     Guid: 589d259d-dfe8-4af8-8ef6-7fe5c84ab6a4
   - GameObject: {fileID: 1628693848}
     Guid: cb76e9fa-b2c0-4d35-8eea-7ff68e37e792
-  - GameObject: {fileID: 856707291}
-    Guid: 996796b5-14fb-4e44-bfd8-fb5d501a3584
   - GameObject: {fileID: 1487066049}
     Guid: c7cdbf61-7572-4185-bdcd-36c57f909a17
-  - GameObject: {fileID: 274429833}
-    Guid: 6a1f535c-b4ad-407c-864c-bbe89fac6ed2
   - GameObject: {fileID: 118048145}
     Guid: b0cea440-d733-47c6-9a50-654ca3109984
   - GameObject: {fileID: 485688244}
@@ -726,8 +715,6 @@ MonoBehaviour:
     Guid: 54969d10-aa2b-46f1-8a33-f31bbf1564ca
   - GameObject: {fileID: 1532086728}
     Guid: 680f6bbb-f16b-4d62-868a-3989d1ba8506
-  - GameObject: {fileID: 1577082654}
-    Guid: 94eb5314-0000-63f8-0000-c01f000060ce
   - GameObject: {fileID: 289363911}
     Guid: 3592a8f0-0000-0700-e3c0-d9d7000060ce
   - GameObject: {fileID: 2003862372}
@@ -736,8 +723,6 @@ MonoBehaviour:
     Guid: cb76e9fb-b2c0-4d35-8eea-7ff68e37e792
   - GameObject: {fileID: 1487066049}
     Guid: c7cdbf62-7572-4185-bdcd-36c57f909a17
-  - GameObject: {fileID: 274429833}
-    Guid: 6a1f535d-b4ad-407c-864c-bbe89fac6ed2
   - GameObject: {fileID: 118048145}
     Guid: b0cea441-d733-47c6-9a50-654ca3109984
   - GameObject: {fileID: 485688244}
@@ -750,20 +735,14 @@ MonoBehaviour:
     Guid: 54969d11-aa2b-46f1-8a33-f31bbf1564ca
   - GameObject: {fileID: 1532086728}
     Guid: 680f6bbc-f16b-4d62-868a-3989d1ba8506
-  - GameObject: {fileID: 1577082654}
-    Guid: 94eb5315-0000-63f8-0000-c01f000060ce
   - GameObject: {fileID: 289363911}
     Guid: 3592a8f1-0000-0700-e3c0-d9d7000060ce
   - GameObject: {fileID: 2003862372}
     Guid: 589d259f-dfe8-4af8-8ef6-7fe5c84ab6a4
   - GameObject: {fileID: 1628693848}
     Guid: cb76e9fc-b2c0-4d35-8eea-7ff68e37e792
-  - GameObject: {fileID: 856707291}
-    Guid: 996796b7-14fb-4e44-bfd8-fb5d501a3584
   - GameObject: {fileID: 1487066049}
     Guid: c7cdbf63-7572-4185-bdcd-36c57f909a17
-  - GameObject: {fileID: 274429833}
-    Guid: 6a1f535e-b4ad-407c-864c-bbe89fac6ed2
   - GameObject: {fileID: 118048145}
     Guid: b0cea442-d733-47c6-9a50-654ca3109984
   - GameObject: {fileID: 485688244}
@@ -776,8 +755,6 @@ MonoBehaviour:
     Guid: 54969d12-aa2b-46f1-8a33-f31bbf1564ca
   - GameObject: {fileID: 1532086728}
     Guid: 680f6bbd-f16b-4d62-868a-3989d1ba8506
-  - GameObject: {fileID: 1577082654}
-    Guid: 94eb5316-0000-63f8-0000-c01f000060ce
   - GameObject: {fileID: 289363911}
     Guid: 3592a8f2-0000-0700-e3c0-d9d7000060ce
   - GameObject: {fileID: 2003862372}
@@ -786,8 +763,6 @@ MonoBehaviour:
     Guid: cb76e9fd-b2c0-4d35-8eea-7ff68e37e792
   - GameObject: {fileID: 1487066049}
     Guid: c7cdbf64-7572-4185-bdcd-36c57f909a17
-  - GameObject: {fileID: 274429833}
-    Guid: 6a1f535f-b4ad-407c-864c-bbe89fac6ed2
   - GameObject: {fileID: 118048145}
     Guid: b0cea443-d733-47c6-9a50-654ca3109984
   - GameObject: {fileID: 485688244}
@@ -800,20 +775,14 @@ MonoBehaviour:
     Guid: 54969d13-aa2b-46f1-8a33-f31bbf1564ca
   - GameObject: {fileID: 1532086728}
     Guid: 680f6bbe-f16b-4d62-868a-3989d1ba8506
-  - GameObject: {fileID: 1577082654}
-    Guid: 94eb5317-0000-63f8-0000-c01f000060ce
   - GameObject: {fileID: 289363911}
     Guid: 3592a8f3-0000-0700-e3c0-d9d7000060ce
   - GameObject: {fileID: 2003862372}
     Guid: 589d25a1-dfe8-4af8-8ef6-7fe5c84ab6a4
   - GameObject: {fileID: 1628693848}
     Guid: cb76e9fe-b2c0-4d35-8eea-7ff68e37e792
-  - GameObject: {fileID: 856707291}
-    Guid: 996796b9-14fb-4e44-bfd8-fb5d501a3584
   - GameObject: {fileID: 1487066049}
     Guid: c7cdbf65-7572-4185-bdcd-36c57f909a17
-  - GameObject: {fileID: 274429833}
-    Guid: 6a1f5360-b4ad-407c-864c-bbe89fac6ed2
   - GameObject: {fileID: 118048145}
     Guid: b0cea444-d733-47c6-9a50-654ca3109984
   - GameObject: {fileID: 485688244}
@@ -826,6 +795,8 @@ MonoBehaviour:
     Guid: 54969d14-aa2b-46f1-8a33-f31bbf1564ca
   - GameObject: {fileID: 1532086728}
     Guid: 680f6bbf-f16b-4d62-868a-3989d1ba8506
+  - GameObject: {fileID: 1388497238}
+    Guid: 848a3c2b-a866-bdf9-0000-c01f000060ce
 --- !u!4 &622102130
 Transform:
   m_ObjectHideFlags: 0
@@ -1020,7 +991,7 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
---- !u!1001 &856707290
+--- !u!1001 &818033840
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -1030,15 +1001,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3173313887276305293, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 36.2
+      value: 39.0713
       objectReference: {fileID: 0}
     - target: {fileID: 3173313887276305293, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.21
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3173313887276305293, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.01731
+      value: 1.64328
       objectReference: {fileID: 0}
     - target: {fileID: 3173313887276305293, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1072,25 +1043,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Paloma
       objectReference: {fileID: 0}
-    - target: {fileID: 7259370794713243280, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
-      propertyPath: m_TagString
-      value: Player
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
---- !u!1 &856707291 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7259370794713243280, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
-  m_PrefabInstance: {fileID: 856707290}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &856707292 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3173313887276305293, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
-  m_PrefabInstance: {fileID: 856707290}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1228512466
 GameObject:
   m_ObjectHideFlags: 0
@@ -1605,11 +1562,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1577082654 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1210337100014427812, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
-  m_PrefabInstance: {fileID: 856707290}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1628693848
 GameObject:
   m_ObjectHideFlags: 0
@@ -1739,7 +1691,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChefAI
   estadoActual: 0
-  paloma: {fileID: 856707292}
+  paloma: {fileID: 0}
   puntosPatrulla:
   - {fileID: 1228512467}
   - {fileID: 1314671913}
@@ -2499,7 +2451,6 @@ SceneRoots:
   - {fileID: 289363913}
   - {fileID: 622102130}
   - {fileID: 2003862378}
-  - {fileID: 856707290}
   - {fileID: 1487066055}
   - {fileID: 1628693852}
   - {fileID: 118048151}
@@ -2509,3 +2460,4 @@ SceneRoots:
   - {fileID: 360827920}
   - {fileID: 1532086729}
   - {fileID: 1388497239}
+  - {fileID: 818033840}
