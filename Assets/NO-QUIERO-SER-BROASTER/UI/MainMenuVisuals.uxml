@@ -1,0 +1,29 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/NO-QUIERO-SER-BROASTER/UI/MainMenuStyles.uss?fileID=7433441132597879392&amp;guid=8beee622b72f9fa4eb2e57600bab3660&amp;type=3#MainMenuStyles"/>
+    <ui:VisualElement name="MainContainer" class="main-container">
+        <ui:VisualElement name="Title">
+            <ui:Label text="NO QUIERO SER BROASTER" name="TitleGame"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="ButtonGame">
+            <ui:Button text="Jugar" name="BPlay" class="menu-button"/>
+            <ui:Button text="Opciones" name="BOptions" class="menu-button"/>
+            <ui:Button text="Salir" name="BExit" class="menu-button"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="OptionsMenuContainer" class="options-container">
+        <ui:Label text="CONFIGURACIONES" name="OptionsTitle" class="options-title"/>
+        <ui:VisualElement class="setting-row">
+            <ui:Label text="Volumen" name="LblVolume" class="setting-label"/>
+            <ui:Slider name="VolumeSlider" low-value="0" high-value="100" value="50" class="modern-slider"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="setting-row">
+            <ui:Label text="Pantalla Completa" name="LblFullscreen" class="setting-label"/>
+            <ui:Toggle name="FullscreenToggle" class="modern-toggle"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="setting-row">
+            <ui:Label text="Idioma" name="LblLanguage" class="setting-label"/>
+            <ui:DropdownField name="LanguageDropdown" choices="Español, English, Português" index="0" class="modern-dropdown"/>
+        </ui:VisualElement>
+        <ui:Button text="Volver" name="BBack" class="menu-button"/>
+    </ui:VisualElement>
+</ui:UXML>

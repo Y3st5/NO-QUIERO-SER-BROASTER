@@ -1,0 +1,176 @@
+/* Contenedor principal con viñeta radial */
+.main-container {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(13, 14, 18);
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 60px;
+    padding-bottom: 70px;
+    border-width: 1px;
+    border-color: rgba(255, 180, 0, 0.15);
+}
+
+/* Contenedor de Opciones */
+.options-container {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(13, 14, 18);
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    display: none; /* Por defecto oculto, se activa por código */
+}
+
+/* Área del título */
+#Title {
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+#TitleGame, .options-title {
+    font-size: 50px;
+    -unity-font-style: bold;
+    color: rgb(255, 204, 0);
+    letter-spacing: 6px;
+    -unity-text-align: middle-center;
+    text-shadow: 0px 4px 18px rgba(255, 120, 0, 0.45);
+    margin-bottom: 8px;
+    white-space: normal;
+}
+
+/* Layout de Ajustes */
+.setting-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 500px;
+    margin: 15px 0;
+}
+
+.setting-label {
+    color: rgb(210, 215, 230);
+    font-size: 22px;
+    -unity-font-style: bold;
+}
+
+/* Slider Moderno */
+.modern-slider {
+    width: 300px;
+    margin-left: 20px;
+}
+
+.modern-slider .unity-slider__tracker {
+    background-color: rgb(40, 40, 50);
+    border-radius: 5px;
+    border-width: 1px;
+    border-color: rgb(60, 60, 70);
+}
+
+.modern-slider .unity-slider__dragger {
+    background-color: rgb(255, 204, 0);
+    border-radius: 50%;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+}
+
+/* Toggle Moderno */
+.modern-toggle {
+    margin-left: 20px;
+}
+
+.modern-toggle .unity-toggle__checkmark {
+    background-color: rgb(255, 204, 0);
+    border-radius: 2px;
+}
+
+.modern-toggle .unity-toggle__box {
+    background-color: rgb(40, 40, 50);
+    border-width: 1px;
+    border-color: rgb(60, 60, 70);
+}
+
+/* Contenedor de botones agrupados */
+#ButtonGame {
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Estilo base de los botones: diseño más estilizado y nítido */
+.menu-button {
+    width: 290px;
+    height: 52px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background-color: rgba(28, 30, 38, 0.85);
+    color: rgb(210, 215, 230);
+    font-size: 19px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 2px;
+    border-width: 1px;
+    border-color: rgba(90, 100, 125, 0.35);
+    transition-property: all;
+    transition-duration: 0.18s;
+}
+
+/* Efecto Hover: se enciende el borde naranja/dorado y gana brillo */
+.menu-button:hover {
+    background-color: rgba(45, 48, 62, 0.95);
+    color: rgb(255, 255, 255);
+    border-color: rgb(255, 180, 0);
+    border-width: 2px;
+    scale: 1.04;
+}
+
+/* Efecto Click: compresión rápida */
+.menu-button:active {
+    background-color: rgb(20, 22, 28);
+    border-color: rgb(200, 140, 0);
+    scale: 0.96;
+}
+
+/* Botón principal (Jugar): resalta sobre los demás */
+#BPlay {
+    border-color: rgba(255, 180, 0, 0.5);
+    background-color: rgba(40, 36, 30, 0.9);
+    color: rgb(255, 225, 140);
+}
+
+#BPlay:hover {
+    background-color: rgb(255, 170, 0);
+    color: rgb(20, 20, 20);
+    border-color: rgb(255, 220, 100);
+}
+
+/* Botón Salir: más sutil y tono de alerta al interactuar */
+#BExit:hover {
+    border-color: rgb(235, 75, 75);
+    color: rgb(255, 120, 120);
+}
+/* Estilo del selector de idioma */
+.modern-dropdown {
+    width: 250px;
+    height: 35px;
+    background-color: rgba(28, 30, 38, 0.85);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(90, 100, 125, 0.35);
+    color: rgb(255, 204, 0);
+    -unity-font-style: bold;
+}
+
+/* Cambiar el color del texto interno del desplegable */
+.modern-dropdown > .unity-base-popup-field__input {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.modern-dropdown > .unity-base-popup-field__input > .unity-text-element {
+    color: rgb(255, 204, 0);
+}

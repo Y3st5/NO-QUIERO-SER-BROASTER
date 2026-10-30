@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5be51871efa6c3e4eae1703925c8f5ac, type: 3}
+  m_Name: MenuTextos
+  m_EditorClassIdentifier: Unity.Localization.Editor::UnityEditor.Localization.StringTableCollection
+  m_SharedTableData: {fileID: 11400000, guid: ec6e25cc524a0f44ca46fa3d75c622de, type: 2}
+  m_Tables:
+  - {fileID: 11400000, guid: 5d5373998cdaaa14aa222c8e2d36e954, type: 2}
+  - {fileID: 11400000, guid: 83cd53c785a2afa468eacbacaf05e0d8, type: 2}
+  - {fileID: 11400000, guid: d43b8726d8287614ba92941f261ebf63, type: 2}
+  - {fileID: 11400000, guid: 8b6148ddc1bd580478dfee6a3331c731, type: 2}
+  m_Extensions: []
+  m_Group: String Table
+  references:
+    version: 2
+    RefIds: []
