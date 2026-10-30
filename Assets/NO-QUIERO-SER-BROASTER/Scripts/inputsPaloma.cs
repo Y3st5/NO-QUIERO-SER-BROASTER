@@ -47,6 +47,30 @@ public class inputsPaloma : MonoBehaviour
     /// <summary>Collider que se esta mirando ahora mismo (null si no hay nada). Util para UI.</summary>
     public Collider CurrentTarget { get; private set; }
 
+    /// <summary>Velocidad actual combinada (horizontal + vertical). La usa el Chef para predecir el movimiento.</summary>
+    public Vector3 Velocity => horizontalVelocity + Vector3.up * verticalVelocity;
+
+    /// <summary>Posicion de los ojos (camara), o la altura de pecho si no hay camara.</summary>
+    public Vector3 EyePosition => cameraTransform != null
+        ? cameraTransform.position
+        : transform.position + Vector3.up * 1.2f;
+
+    /// <summary>True mientras este pisando un charco.</summary>
+    public bool Ralentizada => Time.time < finRalentizacion;
+
+    /// <summary>
+    /// Aplica una ralentizacion temporal (factor 0.45 = 45 % de la velocidad normal).
+    /// Si ya estaba ralentizada se queda con el factor mas fuerte.
+    /// </summary>
+    public void Ralentizar(float factor, float duracion)
+    {
+        if (duracion <= 0f || factor >= 1f)
+            return;
+
+        factorRalentizacion = Mathf.Min(factorRalentizacion, Mathf.Clamp(factor, 0.05f, 1f));
+        finRalentizacion = Mathf.Max(finRalentizacion, Time.time + duracion);
+    }
+
     // Mapa y acciones del asset
     private InputActionMap playerMap;
     private InputAction moveAction;
@@ -76,6 +100,10 @@ public class inputsPaloma : MonoBehaviour
     private Vector3 horizontalVelocity;
     private float verticalVelocity;
     private float pitch;
+
+    // Ralentizacion por charcos
+    private float factorRalentizacion = 1f;
+    private float finRalentizacion = -1f;
 
     private void Awake()
     {
@@ -206,6 +234,8 @@ public class inputsPaloma : MonoBehaviour
         isSprinting = false;
         jumpRequested = false;
         horizontalVelocity = Vector3.zero;
+        factorRalentizacion = 1f;
+        finRalentizacion = -1f;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -240,7 +270,10 @@ public class inputsPaloma : MonoBehaviour
     {
         Vector2 input = Vector2.ClampMagnitude(moveInput, 1f);
 
-        float targetSpeed = isSprinting ? sprintSpeed : walkSpeed;
+        if (Time.time >= finRalentizacion)
+            factorRalentizacion = 1f;
+
+        float targetSpeed = (isSprinting ? sprintSpeed : walkSpeed) * (Ralentizada ? factorRalentizacion : 1f);
         Vector3 targetVelocity = (transform.right * input.x + transform.forward * input.y) * targetSpeed;
 
         // Aceleracion suave

@@ -1,8 +1,15 @@
 using UnityEngine;
 using UnityEngine.AI;
+
+/// <summary>
+/// Chef perseguidor de la Paloma.
+/// Patrulla, sospecha, persigue, se aturde y lanza proyectiles en parábola
+/// prediciendo hacia dónde se mueve el jugador.
+/// </summary>
 public class ChefAI : MonoBehaviour
 {
-    public enum Estado { Patrulla, Sospecha, Persecucion, Aturdido }
+    public enum Estado { Patrulla, Sospecha, Persecucion, Aturdido, Lanzando, Detenido }
+
     public Estado estadoActual = Estado.Patrulla;
 
     [Header("Referencias")]
@@ -21,13 +28,43 @@ public class ChefAI : MonoBehaviour
     [Header("Otros")]
     public float tiempoPerdidaPaloma = 3f;
     public float tiempoAturdido = 3f;
+    public float tiempoSospecha = 3f;
     public float distanciaAtrapar = 1.2f;
+    public float cooldownAtrapar = 1.5f;
+
+    [Header("Lanzamiento")]
+    [Tooltip("Prefab del proyectil. Si está vacío, el Chef no lanza.")]
+    public GameObject proyectilPrefab;
+    [Tooltip("Punto desde el que sale el proyectil. Si está vacío se usa la posición del Chef + 1.5 m.")]
+    public Transform puntoDeLanzamiento;
+    [Tooltip("Altura a la que apunta sobre la base de la Paloma (la raíz está a los pies).")]
+    public float alturaObjetivo = 1.2f;
+    public float rangoMinLanzamiento = 4f;
+    public float rangoMaxLanzamiento = 18f;
+    [Tooltip("Velocidad de referencia para calcular el tiempo de vuelo.")]
+    public float velocidadNominal = 12f;
+    public float tiempoVueloMin = 0.6f;
+    public float tiempoVueloMax = 1.1f;
+    [Tooltip("Segundos mínimos entre lanzamientos.")]
+    public float cadenciaLanzamiento = 2.5f;
+    [Tooltip("Aviso previo antes de soltar el proyectil (telegraph).")]
+    public float tiempoPreparacion = 0.6f;
+    [Tooltip("0 = apunta a tu posición actual, 1 = predicción total. Se recomienda 0.6-0.7.")]
+    [Range(0f, 1.5f)] public float factorPrediccion = 0.7f;
+    [Tooltip("Error de apuntado aleatorio en metros (0 = francotirador).")]
+    public float errorApuntado = 0.4f;
 
     private NavMeshAgent agente;
-    private int indicePatrulla = 0;
+    private int indicePatrulla;
     private float temporizador;
+    private float siguienteLanzamiento;
+    private float siguienteAgarre;
     private Vector3 ultimaPosicionVista;
-    void Start()
+    private VidaPaloma vidaPaloma;
+    private inputsPaloma jugador;
+    private readonly Vector3[] arcoDebug = new Vector3[32];
+
+    private void Start()
     {
         agente = GetComponent<NavMeshAgent>();
 
@@ -38,11 +75,23 @@ public class ChefAI : MonoBehaviour
             if (obj != null) paloma = obj.transform;
         }
 
-        IrAlSiguientePunto();
+        if (paloma != null)
+        {
+            vidaPaloma = paloma.GetComponent<VidaPaloma>();
+            jugador = paloma.GetComponent<inputsPaloma>();
+        }
+
+        if (agente != null)
+            IrAlSiguientePunto();
     }
-    void Update()
+
+    private void Update()
     {
-        if (paloma == null) return;
+        if (agente == null || paloma == null)
+            return;
+
+        if (estadoActual == Estado.Detenido)
+            return;
 
         bool veAlaPaloma = PuedeVerPaloma();
 
@@ -50,9 +99,15 @@ public class ChefAI : MonoBehaviour
         {
             case Estado.Patrulla:
                 agente.speed = velPatrulla;
-                if (veAlaPaloma) CambiarEstado(Estado.Persecucion);
-                else if (!agente.pathPending && agente.remainingDistance < 0.5f)
+                if (veAlaPaloma)
+                {
+                    CambiarEstado(Estado.Persecucion);
+                }
+                else if (!agente.pathPending && agente.hasPath &&
+                         agente.remainingDistance <= agente.stoppingDistance + 0.5f)
+                {
                     IrAlSiguientePunto();
+                }
                 break;
 
             case Estado.Persecucion:
@@ -63,31 +118,47 @@ public class ChefAI : MonoBehaviour
                     agente.SetDestination(paloma.position);
                     temporizador = tiempoPerdidaPaloma;
 
-                    if (Vector3.Distance(transform.position, paloma.position) < distanciaAtrapar)
+                    if (Vector3.Distance(transform.position, paloma.position) <= distanciaAtrapar)
                         AtraparPaloma();
+                    else if (PuedeLanzar())
+                        CambiarEstado(Estado.Lanzando);
                 }
                 else
                 {
                     agente.SetDestination(ultimaPosicionVista);
                     temporizador -= Time.deltaTime;
-                    if (temporizador <= 0) CambiarEstado(Estado.Sospecha);
+                    if (temporizador <= 0f)
+                        CambiarEstado(Estado.Sospecha);
                 }
                 break;
 
             case Estado.Sospecha:
-                transform.Rotate(0, 90 * Time.deltaTime, 0);
+                transform.Rotate(0f, 90f * Time.deltaTime, 0f);
                 temporizador -= Time.deltaTime;
                 if (veAlaPaloma) CambiarEstado(Estado.Persecucion);
-                else if (temporizador <= 0) CambiarEstado(Estado.Patrulla);
+                else if (temporizador <= 0f) CambiarEstado(Estado.Patrulla);
                 break;
 
             case Estado.Aturdido:
                 temporizador -= Time.deltaTime;
-                if (temporizador <= 0) CambiarEstado(Estado.Persecucion);
+                if (temporizador <= 0f) CambiarEstado(Estado.Persecucion);
+                break;
+
+            case Estado.Lanzando:
+                GirarHacia(paloma.position);
+                temporizador -= Time.deltaTime;
+                if (temporizador <= 0f)
+                {
+                    Lanzar();
+                    siguienteLanzamiento = Time.time + Mathf.Max(0.1f, cadenciaLanzamiento);
+                    CambiarEstado(Estado.Persecucion);
+                }
                 break;
         }
     }
-    bool PuedeVerPaloma()
+
+    // ---------------- VISION ----------------
+    private bool PuedeVerPaloma()
     {
         Vector3 origen = transform.position + Vector3.up * 1f;
         Vector3 objetivo = paloma.position + Vector3.up * 0.5f;
@@ -100,51 +171,231 @@ public class ChefAI : MonoBehaviour
 
         return true;
     }
-    void CambiarEstado(Estado nuevo)
+
+    // ---------------- MAQUINA DE ESTADOS ----------------
+    private void CambiarEstado(Estado nuevo)
     {
         estadoActual = nuevo;
+
         switch (nuevo)
         {
             case Estado.Patrulla:
+                agente.isStopped = false;
+                agente.ResetPath();
                 IrAlSiguientePunto();
                 break;
+
             case Estado.Sospecha:
                 agente.ResetPath();
-                temporizador = 3f;
+                agente.isStopped = true;
+                temporizador = tiempoSospecha;
                 break;
+
             case Estado.Aturdido:
                 agente.ResetPath();
+                agente.isStopped = true;
                 temporizador = tiempoAturdido;
                 break;
+
             case Estado.Persecucion:
+                agente.isStopped = false;
                 temporizador = tiempoPerdidaPaloma;
-                // aqui va el grito: "�SE ME ESCAPA EL POLLO!"
+                break;
+
+            case Estado.Lanzando:
+                agente.ResetPath();
+                agente.isStopped = true;
+                temporizador = tiempoPreparacion;
+                break;
+
+            case Estado.Detenido:
+                agente.ResetPath();
+                agente.isStopped = true;
                 break;
         }
     }
-    void IrAlSiguientePunto()
+
+    private void IrAlSiguientePunto()
     {
-        if (puntosPatrulla.Length == 0) return;
+        if (agente == null || puntosPatrulla == null || puntosPatrulla.Length == 0)
+            return;
+
+        agente.isStopped = false;
         agente.SetDestination(puntosPatrulla[indicePatrulla].position);
         indicePatrulla = (indicePatrulla + 1) % puntosPatrulla.Length;
     }
-    void AtraparPaloma()
+
+    // ---------------- ATRAPAR ----------------
+    private void AtraparPaloma()
     {
-        Debug.Log("�TE HICIERON BROASTER!");
-        // aqui llamas a tu GameManager para la pantalla de derrota
+        if (Time.time < siguienteAgarre)
+            return;
+
+        if (vidaPaloma == null || !vidaPaloma.RecibirDanio(1))
+            return;
+
+        siguienteAgarre = Time.time + Mathf.Max(0.1f, cooldownAtrapar);
+
+        if (vidaPaloma.Derrotada)
+            Detener();
     }
+
+    // ---------------- LANZAMIENTO ----------------
+    private bool PuedeLanzar()
+    {
+        if (proyectilPrefab == null || Time.time < siguienteLanzamiento)
+            return false;
+
+        float distancia = Vector3.Distance(transform.position, paloma.position);
+        return distancia >= rangoMinLanzamiento && distancia <= rangoMaxLanzamiento;
+    }
+
+    private void Lanzar()
+    {
+        if (proyectilPrefab == null)
+            return;
+
+        Vector3 origen = OrigenLanzamiento();
+        Vector3 destino = CalcularDestino(origen);
+        float tiempoVuelo = CalcularTiempoVuelo(Vector3.Distance(origen, destino));
+
+        if (!Balistica.TryCalcularVelocidad(origen, destino, tiempoVuelo, Physics.gravity, out Vector3 velocidad))
+            return;
+
+        // Sale un poco por delante para no aparecer dentro del Chef
+        Vector3 horizontal = destino - origen;
+        horizontal.y = 0f;
+        if (horizontal.sqrMagnitude > 0.01f)
+            origen += horizontal.normalized * 0.4f;
+
+        Quaternion rotacion = velocidad.sqrMagnitude > 0.0001f
+            ? Quaternion.LookRotation(velocidad, Vector3.up)
+            : transform.rotation;
+
+        GameObject instancia = Instantiate(proyectilPrefab, origen, rotacion);
+        ProyectilChef proyectil = instancia.GetComponent<ProyectilChef>();
+
+        if (proyectil != null)
+        {
+            proyectil.Inicializar(transform, velocidad);
+        }
+        else
+        {
+            Rigidbody cuerpo = instancia.GetComponent<Rigidbody>();
+            if (cuerpo != null) cuerpo.linearVelocity = velocidad;
+        }
+    }
+
+    private Vector3 OrigenLanzamiento()
+    {
+        return puntoDeLanzamiento != null
+            ? puntoDeLanzamiento.position
+            : transform.position + Vector3.up * 1.5f;
+    }
+
+    private Vector3 PosicionObjetivo()
+    {
+        return paloma.position + Vector3.up * alturaObjetivo;
+    }
+
+    private float CalcularTiempoVuelo(float distancia)
+    {
+        float tiempo = distancia / Mathf.Max(0.01f, velocidadNominal);
+        return Mathf.Clamp(tiempo, tiempoVueloMin, tiempoVueloMax);
+    }
+
+    /// <summary>
+    /// Predice el punto de impacto iterando: el tiempo de vuelo depende de la distancia
+    /// y la distancia depende de dónde estará el jugador. Converge en 2-3 pasadas.
+    /// </summary>
+    private Vector3 CalcularDestino(Vector3 origen)
+    {
+        Vector3 objetivo = PosicionObjetivo();
+        Vector3 velocidadJugador = jugador != null ? jugador.Velocity : Vector3.zero;
+        Vector3 prediccion = objetivo;
+
+        for (int i = 0; i < 3; i++)
+        {
+            float tiempoVuelo = CalcularTiempoVuelo(Vector3.Distance(origen, prediccion));
+            prediccion = Balistica.Predecir(objetivo, velocidadJugador, tiempoVuelo, factorPrediccion);
+        }
+
+        if (errorApuntado > 0f)
+        {
+            Vector3 error = Random.insideUnitSphere * errorApuntado;
+            error.y *= 0.5f;
+            prediccion += error;
+        }
+
+        return prediccion;
+    }
+
+    private void GirarHacia(Vector3 posicion)
+    {
+        Vector3 dir = posicion - transform.position;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.01f) return;
+
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 540f * Time.deltaTime);
+    }
+
+    // ---------------- API PUBLICA ----------------
+    /// <summary>Aturde al Chef durante "tiempoAturdido" segundos.</summary>
     public void Aturdir()
     {
+        if (estadoActual == Estado.Detenido || agente == null)
+            return;
+
         CambiarEstado(Estado.Aturdido);
     }
-    void OnDrawGizmosSelected()
+
+    /// <summary>Detiene al Chef definitivamente (se llama al perder la partida).</summary>
+    public void Detener()
     {
+        if (agente == null)
+        {
+            enabled = false;
+            return;
+        }
+
+        if (estadoActual != Estado.Detenido)
+            CambiarEstado(Estado.Detenido);
+    }
+
+    // ---------------- GIZMOS ----------------
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 ojos = transform.position + Vector3.up * 1f;
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, rangoVision);
+        Gizmos.DrawWireSphere(ojos, rangoVision);
+
         Vector3 izq = Quaternion.Euler(0, -anguloVision / 2f, 0) * transform.forward;
         Vector3 der = Quaternion.Euler(0, anguloVision / 2f, 0) * transform.forward;
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, izq * rangoVision);
-        Gizmos.DrawRay(transform.position, der * rangoVision);
+        Gizmos.DrawRay(ojos, izq * rangoVision);
+        Gizmos.DrawRay(ojos, der * rangoVision);
+
+        if (proyectilPrefab == null)
+            return;
+
+        Vector3 origen = OrigenLanzamiento();
+        Vector3 destino = Application.isPlaying && paloma != null
+            ? CalcularDestino(origen)
+            : paloma != null
+                ? PosicionObjetivo()
+                : origen + transform.forward * 10f;
+
+        float tiempoVuelo = CalcularTiempoVuelo(Vector3.Distance(origen, destino));
+
+        if (!Balistica.TryCalcularVelocidad(origen, destino, tiempoVuelo, Physics.gravity, out Vector3 velocidad))
+            return;
+
+        Balistica.MuestrearArco(origen, velocidad, Physics.gravity, tiempoVuelo, arcoDebug);
+
+        Gizmos.color = Color.cyan;
+        for (int i = 1; i < arcoDebug.Length; i++)
+            Gizmos.DrawLine(arcoDebug[i - 1], arcoDebug[i]);
     }
 }
