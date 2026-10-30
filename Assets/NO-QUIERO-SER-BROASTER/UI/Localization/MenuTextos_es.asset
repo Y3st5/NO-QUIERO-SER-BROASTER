@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: MenuTextos_es
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: ec6e25cc524a0f44ca46fa3d75c622de, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 506833399808
+    m_Localized: Jugar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 684550254592
+    m_Localized: Opciones
+    m_Metadata:
+      m_Items: []
+  - m_Id: 702195691520
+    m_Localized: Salir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 710668185600
+    m_Localized: Volver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 735091617792
+    m_Localized: Volumen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 776564895744
+    m_Localized: Pantalla Completa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4059060760576
+    m_Localized: CONFIGURACIONES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4083412889600
+    m_Localized: Idioma
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: MenuTextos Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: MenuTextos
+  m_TableCollectionNameGuidString: ec6e25cc524a0f44ca46fa3d75c622de
+  m_Entries:
+  - m_Id: 506833399808
+    m_Key: btn_play
+    m_Metadata:
+      m_Items: []
+  - m_Id: 684550254592
+    m_Key: btn_options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 702195691520
+    m_Key: btn_exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 710668185600
+    m_Key: btn_back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 735091617792
+    m_Key: lbl_volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 776564895744
+    m_Key: lbl_fullscreen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4059060760576
+    m_Key: lbl_title_options
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4083412889600
+    m_Key: lbl_language
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 8019513055726272939
+  references:
+    version: 2
+    RefIds:
+    - rid: 8019513055726272939
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1793398359412

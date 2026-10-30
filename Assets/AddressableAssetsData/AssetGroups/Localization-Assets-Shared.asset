@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Localization-Assets-Shared
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Localization-Assets-Shared
+  m_GUID: 5a7695f786be48146aec7a08e06fd70b
+  m_SerializeEntries:
+  - m_GUID: ec6e25cc524a0f44ca46fa3d75c622de
+    m_Address: Assets/NO-QUIERO-SER-BROASTER/UI/Localization/MenuTextos Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 1
+  m_Settings: {fileID: 11400000, guid: 9846e8b8590c701418985cde754d6008, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 2fc2c8ff8fa87844088544b4d1fecb05, type: 2}
+    - {fileID: 11400000, guid: 4339759173814fd44834fd9d63cc7d45, type: 2}
+    - {fileID: 11400000, guid: 04c2aff8ba5116c4789a736546627815, type: 2}
