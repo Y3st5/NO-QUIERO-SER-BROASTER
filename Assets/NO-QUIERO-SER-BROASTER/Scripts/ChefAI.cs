@@ -22,6 +22,7 @@ public class ChefAI : MonoBehaviour
 
     [Header("Campo de vision")]
     public float rangoVision = 10f;
+    public float rangoVisionAumentado = 20f; // Rango cuando el jugador se aleja
     [Range(0, 360)] public float anguloVision = 90f;
     public LayerMask capaObstaculos;
 
@@ -29,6 +30,7 @@ public class ChefAI : MonoBehaviour
     public float tiempoPerdidaPaloma = 3f;
     public float tiempoAturdido = 3f;
     public float tiempoSospecha = 3f;
+    public float tiempoRangoAumentado = 4f; // Cuánto dura la visión extendida
     public float distanciaAtrapar = 1.2f;
     public float cooldownAtrapar = 1.5f;
 
@@ -64,6 +66,7 @@ public class ChefAI : MonoBehaviour
     private inputsPaloma jugador;
     private readonly Vector3[] arcoDebug = new Vector3[32];
     private bool estaRecargandoProyectil = false;
+    private bool visionAumentadaActiva = false;
 
     private void Start()
     {
@@ -163,11 +166,23 @@ public class ChefAI : MonoBehaviour
         Vector3 dir = objetivo - origen;
         float distancia = dir.magnitude;
 
-        if (distancia > rangoVision) return false;
+        float rangoActual = visionAumentadaActiva ? rangoVisionAumentado : rangoVision;
+
+        if (distancia > rangoActual) return false;
         if (Vector3.Angle(transform.forward, dir) > anguloVision / 2f) return false;
         if (Physics.Raycast(origen, dir.normalized, distancia, capaObstaculos)) return false;
 
         return true;
+    }
+
+    private System.Collections.IEnumerator ActivarVisionAumentada()
+    {
+        visionAumentadaActiva = true;
+        
+        // El "cooldown" o tiempo de duración de la visión aumentada
+        yield return new WaitForSeconds(tiempoRangoAumentado);
+        
+        visionAumentadaActiva = false;
     }
 
     // ---------------- MAQUINA DE ESTADOS ----------------
