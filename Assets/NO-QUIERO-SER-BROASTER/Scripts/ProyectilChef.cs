@@ -89,7 +89,7 @@ public class ProyectilChef : MonoBehaviour
         if (charcoPrefab == null)
             return;
 
-        Vector3 posicion = contacto.point + Vector3.up * 0.01f;
+        Vector3 posicion = contacto.point + contacto.normal * 0.05f;
         Quaternion rotacion = Quaternion.FromToRotation(Vector3.up, contacto.normal);
         Instantiate(charcoPrefab, posicion, rotacion);
     }

@@ -63,6 +63,7 @@ public class ChefAI : MonoBehaviour
     private VidaPaloma vidaPaloma;
     private inputsPaloma jugador;
     private readonly Vector3[] arcoDebug = new Vector3[32];
+    private bool estaRecargandoProyectil = false;
 
     private void Start()
     {
@@ -121,7 +122,9 @@ public class ChefAI : MonoBehaviour
                     if (Vector3.Distance(transform.position, paloma.position) <= distanciaAtrapar)
                         AtraparPaloma();
                     else if (PuedeLanzar())
-                        CambiarEstado(Estado.Lanzando);
+                    {
+                        StartCoroutine(SecuenciaLanzamiento());
+                    }
                 }
                 else
                 {
@@ -146,13 +149,8 @@ public class ChefAI : MonoBehaviour
 
             case Estado.Lanzando:
                 GirarHacia(paloma.position);
-                temporizador -= Time.deltaTime;
-                if (temporizador <= 0f)
-                {
-                    Lanzar();
-                    siguienteLanzamiento = Time.time + Mathf.Max(0.1f, cadenciaLanzamiento);
-                    CambiarEstado(Estado.Persecucion);
-                }
+                // El temporizador ahora lo maneja la corrutina, pero mantenemos 
+                // la rotación aquí mientras estemos en el estado de Lanzando.
                 break;
         }
     }
@@ -203,8 +201,7 @@ public class ChefAI : MonoBehaviour
                 break;
 
             case Estado.Lanzando:
-                agente.ResetPath();
-                agente.isStopped = true;
+                agente.isStopped = false; // Permitir que se mueva mientras prepara el disparo
                 temporizador = tiempoPreparacion;
                 break;
 
@@ -243,11 +240,32 @@ public class ChefAI : MonoBehaviour
     // ---------------- LANZAMIENTO ----------------
     private bool PuedeLanzar()
     {
-        if (proyectilPrefab == null || Time.time < siguienteLanzamiento)
+        if (proyectilPrefab == null || estaRecargandoProyectil)
             return false;
 
         float distancia = Vector3.Distance(transform.position, paloma.position);
         return distancia >= rangoMinLanzamiento && distancia <= rangoMaxLanzamiento;
+    }
+
+    private System.Collections.IEnumerator SecuenciaLanzamiento()
+    {
+        estaRecargandoProyectil = true;
+        CambiarEstado(Estado.Lanzando);
+
+        // 1. Tiempo de preparación (Telegraph)
+        yield return new WaitForSeconds(tiempoPreparacion);
+
+        // 2. Ejecutar el lanzamiento
+        Lanzar();
+
+        // 3. Esperar el cooldown (Cadencia)
+        yield return new WaitForSeconds(cadenciaLanzamiento);
+
+        estaRecargandoProyectil = false;
+        
+        // Volver a persecución si no ha sido interrumpido por otro estado
+        if (estadoActual == Estado.Lanzando)
+            CambiarEstado(Estado.Persecucion);
     }
 
     private void Lanzar()
@@ -285,6 +303,7 @@ public class ChefAI : MonoBehaviour
             if (cuerpo != null) cuerpo.linearVelocity = velocidad;
         }
     }
+
 
     private Vector3 OrigenLanzamiento()
     {
@@ -366,16 +385,67 @@ public class ChefAI : MonoBehaviour
     // ---------------- GIZMOS ----------------
     private void OnDrawGizmosSelected()
     {
+        // --- GIZMOS DE PATRULLA ---
+        if (puntosPatrulla != null && puntosPatrulla.Length > 0)
+        {
+            Gizmos.color = Color.green;
+            for (int i = 0; i < puntosPatrulla.Length; i++)
+            {
+                if (puntosPatrulla[i] == null) continue;
+
+                // Dibujar esfera RELLENA en cada punto de patrulla
+                Gizmos.DrawSphere(puntosPatrulla[i].position, 0.3f);
+
+                // Dibujar línea hacia el siguiente punto
+                int siguiente = (i + 1) % puntosPatrulla.Length;
+                if (puntosPatrulla[siguiente] != null)
+                {
+                    Gizmos.DrawLine(puntosPatrulla[i].position, puntosPatrulla[siguiente].position);
+                }
+            }
+        }
+
+        // --- GIZMOS DE VISIÓN ---
         Vector3 ojos = transform.position + Vector3.up * 1f;
 
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(ojos, rangoVision);
+        // 1. Dibujar el círculo de rango total (RELLENO y transparente)
+        Gizmos.color = new Color(1f, 1f, 0f, 0.1f); 
+        Gizmos.DrawSphere(ojos, rangoVision); // Esfera rellena para dar volumen al rango
 
-        Vector3 izq = Quaternion.Euler(0, -anguloVision / 2f, 0) * transform.forward;
-        Vector3 der = Quaternion.Euler(0, anguloVision / 2f, 0) * transform.forward;
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(ojos, izq * rangoVision);
-        Gizmos.DrawRay(ojos, der * rangoVision);
+        // 2. Dibujar el cono de visión RELLENO
+        Vector3 dirIzquierda = Quaternion.Euler(0, -anguloVision / 2f, 0) * transform.forward;
+        Vector3 dirDerecha = Quaternion.Euler(0, anguloVision / 2f, 0) * transform.forward;
+
+        // Dibujar el relleno del cono usando triángulos
+        Gizmos.color = new Color(1f, 1f, 0f, 0.3f); // Amarillo con transparencia
+        int segmentos = 15;
+        for (int i = 0; i < segmentos; i++)
+        {
+            float t1 = (float)i / segmentos;
+            float t2 = (float)(i + 1) / segmentos;
+            Vector3 dir1 = Vector3.Slerp(dirIzquierda, dirDerecha, t1);
+            Vector3 dir2 = Vector3.Slerp(dirIzquierda, dirDerecha, t2);
+
+            // Dibujar el "triángulo" desde el ojo hasta el borde del rango
+            // Nota: Gizmos no tiene DrawTriangle, así que simulamos el relleno con líneas densas
+            // o simplemente dibujamos el borde más fuerte.
+            Gizmos.DrawLine(ojos, ojos + dir1 * rangoVision);
+        }
+        
+        // Dibujamos el borde del cono más fuerte para que se defina bien
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(ojos, dirIzquierda * rangoVision);
+        Gizmos.DrawRay(ojos, dirDerecha * rangoVision);
+
+        Vector3 puntoAnterior = ojos + dirIzquierda * rangoVision;
+        for (int i = 1; i <= segmentos; i++)
+        {
+            float interpolation = (float)i / segmentos;
+            Vector3 dirActual = Vector3.Slerp(dirIzquierda, dirDerecha, interpolation);
+            Vector3 puntoActual = ojos + dirActual * rangoVision;
+            Gizmos.DrawLine(puntoAnterior, puntoActual);
+            puntoAnterior = puntoActual;
+        }
 
         if (proyectilPrefab == null)
             return;
