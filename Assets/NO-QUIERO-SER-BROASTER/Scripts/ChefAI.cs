@@ -62,11 +62,14 @@ public class ChefAI : MonoBehaviour
     private float siguienteLanzamiento;
     private float siguienteAgarre;
     private Vector3 ultimaPosicionVista;
-    private VidaPaloma vidaPaloma;
+    private Paloma vidaPaloma;
     private inputsPaloma jugador;
     private readonly Vector3[] arcoDebug = new Vector3[32];
     private bool estaRecargandoProyectil = false;
     private bool visionAumentadaActiva = false;
+    private float restanteVisionAumentada;
+    private bool busquedaConVisionAumentada;   // evita reactivar la vision extendida en cada frame
+    private Estado estadoAntesDeAturdir = Estado.Patrulla; // a donde vuelve al despertar
 
     private void Start()
     {
@@ -81,7 +84,7 @@ public class ChefAI : MonoBehaviour
 
         if (paloma != null)
         {
-            vidaPaloma = paloma.GetComponent<VidaPaloma>();
+            vidaPaloma = paloma.GetComponent<Paloma>();
             jugador = paloma.GetComponent<inputsPaloma>();
         }
 
@@ -96,6 +99,8 @@ public class ChefAI : MonoBehaviour
 
         if (estadoActual == Estado.Detenido)
             return;
+
+        ActualizarVisionAumentada();
 
         bool veAlaPaloma = PuedeVerPaloma();
 
@@ -118,6 +123,7 @@ public class ChefAI : MonoBehaviour
                 agente.speed = velPersecucion;
                 if (veAlaPaloma)
                 {
+                    busquedaConVisionAumentada = false;
                     ultimaPosicionVista = paloma.position;
                     agente.SetDestination(paloma.position);
                     temporizador = tiempoPerdidaPaloma;
@@ -131,29 +137,57 @@ public class ChefAI : MonoBehaviour
                 }
                 else
                 {
-                    agente.SetDestination(ultimaPosicionVista);
-                    temporizador -= Time.deltaTime;
-                    if (temporizador <= 0f)
+                    // Al perder de vista a la Paloma agrandamos el campo de vision una vez,
+                    // para que sea mas facil volver a encontrarla mientras busca.
+                    if (!busquedaConVisionAumentada)
+                    {
+                        busquedaConVisionAumentada = true;
+                        ActivarVisionAumentada();
+                    }
+
+                    // En lugar de ir al punto exacto, si ya estamos muy cerca de la ultima posicion, pasamos a sospecha
+                    if (!agente.pathPending && agente.remainingDistance <= agente.stoppingDistance + 0.5f)
+                    {
                         CambiarEstado(Estado.Sospecha);
+                    }
+                    else
+                    {
+                        agente.SetDestination(ultimaPosicionVista);
+                        temporizador -= Time.deltaTime;
+                        if (temporizador <= 0f)
+                            CambiarEstado(Estado.Sospecha);
+                    }
                 }
                 break;
 
             case Estado.Sospecha:
-                transform.Rotate(0f, 90f * Time.deltaTime, 0f);
+                agente.isStopped = true;
+                // En lugar de solo rotar, hacemos un movimiento ligero de "búsqueda"
+                transform.Rotate(0f, 60f * Time.deltaTime, 0f);
                 temporizador -= Time.deltaTime;
-                if (veAlaPaloma) CambiarEstado(Estado.Persecucion);
-                else if (temporizador <= 0f) CambiarEstado(Estado.Patrulla);
+                if (veAlaPaloma)
+                {
+                    CambiarEstado(Estado.Persecucion);
+                }
+                else if (temporizador <= 0f)
+                {
+                    CambiarEstado(Estado.Patrulla);
+                }
                 break;
 
             case Estado.Aturdido:
                 temporizador -= Time.deltaTime;
-                if (temporizador <= 0f) CambiarEstado(Estado.Persecucion);
+                if (temporizador <= 0f) Despertar();
                 break;
 
             case Estado.Lanzando:
+                // Durante el aviso previo sigue corriendo hacia la paloma (no se queda parado)
+                agente.speed = velPersecucion;
+                agente.SetDestination(paloma.position);
                 GirarHacia(paloma.position);
-                // El temporizador ahora lo maneja la corrutina, pero mantenemos 
-                // la rotación aquí mientras estemos en el estado de Lanzando.
+
+                if (Vector3.Distance(transform.position, paloma.position) <= distanciaAtrapar)
+                    AtraparPaloma();
                 break;
         }
     }
@@ -175,20 +209,44 @@ public class ChefAI : MonoBehaviour
         return true;
     }
 
-    private System.Collections.IEnumerator ActivarVisionAumentada()
+    /// <summary>Amplia el rango de vision durante "tiempoRangoAumentado" segundos.</summary>
+    private void ActivarVisionAumentada()
     {
         visionAumentadaActiva = true;
-        
-        // El "cooldown" o tiempo de duración de la visión aumentada
-        yield return new WaitForSeconds(tiempoRangoAumentado);
-        
-        visionAumentadaActiva = false;
+        restanteVisionAumentada = Mathf.Max(0f, tiempoRangoAumentado);
+    }
+
+    private void ActualizarVisionAumentada()
+    {
+        if (!visionAumentadaActiva)
+            return;
+
+        restanteVisionAumentada -= Time.deltaTime;
+        if (restanteVisionAumentada <= 0f)
+            visionAumentadaActiva = false;
+    }
+
+    /// <summary>Vuelve al estado que tenia antes del aturdimiento (nunca a Lanzando ni a Aturdido).</summary>
+    private void Despertar()
+    {
+        Estado destino = estadoAntesDeAturdir;
+
+        if (destino == Estado.Lanzando || destino == Estado.Aturdido || destino == Estado.Detenido)
+            destino = Estado.Persecucion;
+
+        CambiarEstado(destino);
     }
 
     // ---------------- MAQUINA DE ESTADOS ----------------
     private void CambiarEstado(Estado nuevo)
     {
         estadoActual = nuevo;
+
+        if (agente == null)
+            return;
+
+        // Mientras lanza giramos nosotros hacia la Paloma; en el resto de estados manda el NavMeshAgent.
+        agente.updateRotation = nuevo != Estado.Lanzando;
 
         switch (nuevo)
         {
@@ -223,6 +281,7 @@ public class ChefAI : MonoBehaviour
             case Estado.Detenido:
                 agente.ResetPath();
                 agente.isStopped = true;
+                visionAumentadaActiva = false;
                 break;
         }
     }
@@ -270,17 +329,19 @@ public class ChefAI : MonoBehaviour
         // 1. Tiempo de preparación (Telegraph)
         yield return new WaitForSeconds(tiempoPreparacion);
 
-        // 2. Ejecutar el lanzamiento
-        Lanzar();
+        // 2. Ejecutar el lanzamiento (solo si no lo aturdieron o detuvieron mientras preparaba)
+        if (estadoActual == Estado.Lanzando)
+        {
+            Lanzar();
 
-        // 3. Esperar el cooldown (Cadencia)
+            // 3. Volver a perseguir YA: el cooldown corre aparte, sin dejar al Chef parado
+            CambiarEstado(Estado.Persecucion);
+        }
+
+        // 4. Cooldown (Cadencia) mientras el Chef sigue persiguiendo
         yield return new WaitForSeconds(cadenciaLanzamiento);
 
         estaRecargandoProyectil = false;
-        
-        // Volver a persecución si no ha sido interrumpido por otro estado
-        if (estadoActual == Estado.Lanzando)
-            CambiarEstado(Estado.Persecucion);
     }
 
     private void Lanzar()
@@ -289,17 +350,19 @@ public class ChefAI : MonoBehaviour
             return;
 
         Vector3 origen = OrigenLanzamiento();
+
+        // Sale un poco por delante para no aparecer dentro del Chef.
+        // Se mueve ANTES de calcular la velocidad para que el tiro salga desde el punto real.
+        Vector3 haciaPaloma = paloma.position - origen;
+        haciaPaloma.y = 0f;
+        if (haciaPaloma.sqrMagnitude > 0.01f)
+            origen += haciaPaloma.normalized * 0.4f;
+
         Vector3 destino = CalcularDestino(origen);
         float tiempoVuelo = CalcularTiempoVuelo(Vector3.Distance(origen, destino));
 
         if (!Balistica.TryCalcularVelocidad(origen, destino, tiempoVuelo, Physics.gravity, out Vector3 velocidad))
             return;
-
-        // Sale un poco por delante para no aparecer dentro del Chef
-        Vector3 horizontal = destino - origen;
-        horizontal.y = 0f;
-        if (horizontal.sqrMagnitude > 0.01f)
-            origen += horizontal.normalized * 0.4f;
 
         Quaternion rotacion = velocidad.sqrMagnitude > 0.0001f
             ? Quaternion.LookRotation(velocidad, Vector3.up)
@@ -381,6 +444,9 @@ public class ChefAI : MonoBehaviour
         if (estadoActual == Estado.Detenido || agente == null)
             return;
 
+        if (estadoActual != Estado.Aturdido)
+            estadoAntesDeAturdir = estadoActual;
+
         CambiarEstado(Estado.Aturdido);
     }
 
@@ -424,7 +490,7 @@ public class ChefAI : MonoBehaviour
         Vector3 ojos = transform.position + Vector3.up * 1f;
 
         // 1. Dibujar el círculo de rango total (RELLENO y transparente)
-        Gizmos.color = new Color(1f, 1f, 0f, 0.1f); 
+        Gizmos.color = new Color(1f, 1f, 0f, 0.1f);
         Gizmos.DrawSphere(ojos, rangoVision); // Esfera rellena para dar volumen al rango
 
         // 2. Dibujar el cono de visión RELLENO
@@ -446,7 +512,7 @@ public class ChefAI : MonoBehaviour
             // o simplemente dibujamos el borde más fuerte.
             Gizmos.DrawLine(ojos, ojos + dir1 * rangoVision);
         }
-        
+
         // Dibujamos el borde del cono más fuerte para que se defina bien
         Gizmos.color = Color.yellow;
         Gizmos.DrawRay(ojos, dirIzquierda * rangoVision);

@@ -64,7 +64,7 @@ public class ProyectilChef : MonoBehaviour
             return;
 
         // 1) ¿Le dio a la Paloma?
-        VidaPaloma vida = colision.collider.GetComponentInParent<VidaPaloma>();
+        Paloma vida = colision.collider.GetComponentInParent<Paloma>();
         if (vida != null)
         {
             vida.RecibirDanio(danio);

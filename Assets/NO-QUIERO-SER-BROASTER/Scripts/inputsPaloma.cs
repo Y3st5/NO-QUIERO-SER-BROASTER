@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 /// - Camara: Look (mouse / stick derecho).
 /// - Saltar: Jump (Espacio / boton sur).
 /// - Correr: Sprint (Shift / gatillo).
-/// - Interactuar: Interact (E / boton oeste) -> raycast y evento OnInteract.
+/// - Interactuar: Interact (E / boton oeste) -> raycast + IInteractable / evento OnInteract.
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class inputsPaloma : MonoBehaviour
@@ -46,6 +46,12 @@ public class inputsPaloma : MonoBehaviour
 
     /// <summary>Collider que se esta mirando ahora mismo (null si no hay nada). Util para UI.</summary>
     public Collider CurrentTarget { get; private set; }
+
+    /// <summary>Objeto interactuable que se esta mirando (null si no implementa IInteractable).</summary>
+    public IInteractable CurrentInteractable { get; private set; }
+
+    /// <summary>Texto del prompt del objeto mirado, o null. Util para UI.</summary>
+    public string CurrentPrompt { get; private set; }
 
     /// <summary>Velocidad actual combinada (horizontal + vertical). La usa el Chef para predecir el movimiento.</summary>
     public Vector3 Velocity => horizontalVelocity + Vector3.up * verticalVelocity;
@@ -192,12 +198,6 @@ public class inputsPaloma : MonoBehaviour
         if (interactAction != null) interactAction.started += onInteract;
 
         playerMap.Enable();
-
-        if (lockCursor)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
     }
 
     private void OnDisable()
@@ -236,9 +236,9 @@ public class inputsPaloma : MonoBehaviour
         horizontalVelocity = Vector3.zero;
         factorRalentizacion = 1f;
         finRalentizacion = -1f;
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        CurrentTarget = null;
+        CurrentInteractable = null;
+        CurrentPrompt = null;
     }
 
     private void Update()
@@ -309,21 +309,47 @@ public class inputsPaloma : MonoBehaviour
                                QueryTriggerInteraction.Ignore);
     }
 
-    /// <summary>Actualiza CurrentTarget cada frame (para mostrar un prompt "Presiona E", etc.).</summary>
+    /// <summary>Busca un IInteractable en el collider y en sus padres (por si el script esta en la raiz).</summary>
+    private static IInteractable BuscarInteractuable(Collider collider)
+    {
+        return collider != null ? collider.GetComponentInParent<IInteractable>() : null;
+    }
+
+    /// <summary>Actualiza CurrentTarget / CurrentInteractable / CurrentPrompt cada frame (para UI).</summary>
     private void UpdateTarget()
     {
-        CurrentTarget = TryRaycast(out RaycastHit hit) ? hit.collider : null;
+        if (!TryRaycast(out RaycastHit hit))
+        {
+            CurrentTarget = null;
+            CurrentInteractable = null;
+            CurrentPrompt = null;
+            return;
+        }
+
+        ActualizarObjetivo(hit.collider);
+    }
+
+    private void ActualizarObjetivo(Collider collider)
+    {
+        CurrentTarget = collider;
+        CurrentInteractable = BuscarInteractuable(collider);
+        CurrentPrompt = CurrentInteractable != null ? CurrentInteractable.Prompt : null;
     }
 
     private void TryInteract()
     {
         if (!TryRaycast(out RaycastHit hit)) return;
 
-        CurrentTarget = hit.collider;
+        ActualizarObjetivo(hit.collider);
 
+        // 1) Interaccion por interfaz (puertas, palancas, objetos del mundo...)
+        if (CurrentInteractable != null)
+            CurrentInteractable.Interact(this);
+
+        // 2) Evento generico para quien prefiera suscribirse desde fuera
         if (OnInteract != null)
             OnInteract.Invoke(hit);
-        else
+        else if (CurrentInteractable == null)
             Debug.Log($"Interactuo con '{hit.collider.name}' (nadie escucha OnInteract).");
     }
 }

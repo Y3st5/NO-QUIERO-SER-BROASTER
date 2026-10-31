@@ -28,7 +28,7 @@ namespace Broaster.EditorTools
         private const string CarpetaMateriales = Raiz + "/Materiales";
         private const string RutaProyectil = CarpetaPrefabs + "/ProyectilBroaster.prefab";
         private const string RutaCharco = CarpetaPrefabs + "/Charco.prefab";
-        private const string RutaPaloma = Raiz + "/Models/Paloma.prefab";
+        private const string RutaPaloma = CarpetaPrefabs + "/Paloma.prefab";
         private const string RutaPerfil = "Assets/Settings/DamageVolumeProfile.asset";
         private const string RutaEscena = "Assets/Scenes/NO-QUIERO-SER-BROASTER.unity";
         private const string NombreVolumen = "DamageVolume";
@@ -186,11 +186,16 @@ namespace Broaster.EditorTools
         private static void ConfigurarPaloma()
         {
             GameObject root = PrefabUtility.LoadPrefabContents(RutaPaloma);
+            if (root == null)
+            {
+                Debug.LogWarning("[Broaster] No encontré el prefab de la Paloma en " + RutaPaloma + ".");
+                return;
+            }
 
             try
             {
-                VidaPaloma vida = root.GetComponent<VidaPaloma>();
-                if (vida == null) vida = root.AddComponent<VidaPaloma>();
+                Paloma vida = root.GetComponent<Paloma>();
+                if (vida == null) vida = root.AddComponent<Paloma>();
 
                 MMF_Player feedbacks = root.GetComponent<MMF_Player>();
                 if (feedbacks == null) feedbacks = root.AddComponent<MMF_Player>();
@@ -198,7 +203,7 @@ namespace Broaster.EditorTools
                 ConfigurarFeedbacks(feedbacks);
 
                 SerializedObject soVida = new SerializedObject(vida);
-                SerializedProperty propFeedback = soVida.FindProperty("feedbackDanio");
+                SerializedProperty propFeedback = soVida.FindProperty("damageFeedback");
                 if (propFeedback != null) propFeedback.objectReferenceValue = feedbacks;
 
                 SerializedProperty propMax = soVida.FindProperty("vidasMax");

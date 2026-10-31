@@ -6,7 +6,7 @@ using UnityEngine;
 /// Vidas de la Paloma (3 por defecto).
 /// Gestiona la invulnerabilidad temporal, el feedback de daño (Feel) y la derrota.
 /// </summary>
-public class VidaPaloma : MonoBehaviour
+public class Paloma : MonoBehaviour
 {
     [Header("Vidas")]
     [SerializeField] private int vidasMax = 3;
@@ -16,7 +16,7 @@ public class VidaPaloma : MonoBehaviour
 
     [Header("Feedback de daño (Feel)")]
     [Tooltip("Se reproduce al recibir daño: parpadeo rojo + sacudida de cámara.")]
-    [SerializeField] private MMF_Player feedbackDanio;
+    [SerializeField] public MMF_Player damageFeedback;
 
     /// <summary>Vidas actuales.</summary>
     public int Vidas { get; private set; }
@@ -36,14 +36,15 @@ public class VidaPaloma : MonoBehaviour
     /// <summary>Se dispara una sola vez al llegar a 0 vidas.</summary>
     public event Action OnDerrota;
 
+
     private float finInvulnerabilidad = -1f;
 
     private void Awake()
     {
         Vidas = Mathf.Max(1, vidasMax);
 
-        if (feedbackDanio == null)
-            feedbackDanio = GetComponent<MMF_Player>();
+        if (damageFeedback == null)
+            damageFeedback = GetComponent<MMF_Player>();
     }
 
     /// <summary>
@@ -58,8 +59,8 @@ public class VidaPaloma : MonoBehaviour
         Vidas = Mathf.Max(0, Vidas - cantidad);
         finInvulnerabilidad = Time.time + Mathf.Max(0f, invulnerabilidad);
 
-        if (feedbackDanio != null)
-            feedbackDanio.PlayFeedbacks();
+        if (damageFeedback != null)
+            damageFeedback.PlayFeedbacks();
 
         OnVidaCambiada?.Invoke(Vidas, vidasMax);
 
@@ -76,20 +77,7 @@ public class VidaPaloma : MonoBehaviour
 
         Derrotada = true;
 
-        // Se libera el cursor desde el OnDisable de inputsPaloma.
-        inputsPaloma control = GetComponent<inputsPaloma>();
-        if (control != null)
-            control.enabled = false;
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        ChefAI chef = FindAnyObjectByType<ChefAI>();
-        if (chef != null)
-            chef.Detener();
-
+        // El GameManager ahora se encarga de los inputs, el cursor y la IA.
         OnDerrota?.Invoke();
-
-        Debug.Log("GAME OVER: ¡TE HICIERON BROASTER!");
     }
 }
