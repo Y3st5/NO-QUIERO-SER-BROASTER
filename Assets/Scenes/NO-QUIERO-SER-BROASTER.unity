@@ -1432,6 +1432,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   vidaPaloma: {fileID: 1290317717}
   chefAI: {fileID: 1628693850}
+  tiempoSupervivenciaParaGanar: 0
 --- !u!1 &1117735858 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1210337100014427812, guid: 3e2990376e6524349800a5cd1a780a09, type: 3}
