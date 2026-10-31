@@ -139,6 +139,7 @@ MonoBehaviour:
   velPatrulla: 2
   velPersecucion: 5
   rangoVision: 10
+  rangoVisionAumentado: 20
   anguloVision: 90
   capaObstaculos:
     serializedVersion: 2
@@ -146,6 +147,7 @@ MonoBehaviour:
   tiempoPerdidaPaloma: 3
   tiempoAturdido: 3
   tiempoSospecha: 3
+  tiempoRangoAumentado: 4
   distanciaAtrapar: 1.2
   cooldownAtrapar: 1.5
   proyectilPrefab: {fileID: 8278098229742518899, guid: b08f9856154344c4884b9f2eb9d081f1, type: 3}
