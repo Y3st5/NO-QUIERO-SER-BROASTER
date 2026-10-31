@@ -27,6 +27,7 @@ namespace Broaster.EditorTools
         private const string CarpetaPrefabs = Raiz + "/Prefabs";
         private const string CarpetaMateriales = Raiz + "/Materiales";
         private const string RutaProyectil = CarpetaPrefabs + "/ProyectilBroaster.prefab";
+        private const string RutaProyectilLanzamiento = CarpetaPrefabs + "/ProyectilLanzamiento.prefab";
         private const string RutaCharco = CarpetaPrefabs + "/Charco.prefab";
         private const string RutaPaloma = CarpetaPrefabs + "/Paloma.prefab";
         private const string RutaPerfil = "Assets/Settings/DamageVolumeProfile.asset";
@@ -68,12 +69,14 @@ namespace Broaster.EditorTools
 
             Material materialProyectil = CrearMaterial("M_Proyectil", new Color(0.85f, 0.14f, 0.10f), 0.55f);
             Material materialCharco = CrearMaterial("M_Charco", new Color(0.13f, 0.09f, 0.05f), 0.95f);
+            Material materialEmpuje = CrearMaterial("M_ProyectilEmpuje", new Color(0.95f, 0.55f, 0.05f), 0.65f);
 
             GameObject charcoPrefab = CrearPrefabCharco(materialCharco);
             GameObject proyectilPrefab = CrearPrefabProyectil(materialProyectil, charcoPrefab);
+            GameObject proyectilEmpujePrefab = CrearPrefabProyectilEmpuje(materialEmpuje);
 
             ConfigurarPaloma();
-            ConfigurarEscena(proyectilPrefab, abrirEscenaSiHaceFalta, verboso);
+            ConfigurarEscena(proyectilPrefab, proyectilEmpujePrefab, abrirEscenaSiHaceFalta, verboso);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -159,13 +162,7 @@ namespace Broaster.EditorTools
             MeshRenderer renderer = go.GetComponent<MeshRenderer>();
             if (renderer != null) renderer.sharedMaterial = material;
 
-            Rigidbody cuerpo = go.AddComponent<Rigidbody>();
-            cuerpo.mass = 1f;
-            cuerpo.linearDamping = 0f;
-            cuerpo.angularDamping = 0.05f;
-            cuerpo.useGravity = true;
-            cuerpo.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            cuerpo.interpolation = RigidbodyInterpolation.Interpolate;
+            ConfigurarRigidbody(go);
 
             ProyectilChef script = go.AddComponent<ProyectilChef>();
 
@@ -179,6 +176,39 @@ namespace Broaster.EditorTools
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(go, RutaProyectil);
             Object.DestroyImmediate(go);
             return prefab;
+        }
+
+        private static GameObject CrearPrefabProyectilEmpuje(Material material)
+        {
+            GameObject existente = AssetDatabase.LoadAssetAtPath<GameObject>(RutaProyectilLanzamiento);
+            if (existente != null)
+                return existente;
+
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            go.name = "ProyectilLanzamiento";
+            go.transform.localScale = Vector3.one * 0.6f;
+
+            MeshRenderer renderer = go.GetComponent<MeshRenderer>();
+            if (renderer != null) renderer.sharedMaterial = material;
+
+            ConfigurarRigidbody(go);
+
+            go.AddComponent<ProyectilLanzamiento>();
+
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(go, RutaProyectilLanzamiento);
+            Object.DestroyImmediate(go);
+            return prefab;
+        }
+
+        private static void ConfigurarRigidbody(GameObject go)
+        {
+            Rigidbody cuerpo = go.AddComponent<Rigidbody>();
+            cuerpo.mass = 1f;
+            cuerpo.linearDamping = 0f;
+            cuerpo.angularDamping = 0.05f;
+            cuerpo.useGravity = true;
+            cuerpo.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            cuerpo.interpolation = RigidbodyInterpolation.Interpolate;
         }
 
         // ---------------------------------------------------------------- PALOMA
@@ -306,7 +336,7 @@ namespace Broaster.EditorTools
 
         // ---------------------------------------------------------------- ESCENA
 
-        private static void ConfigurarEscena(GameObject proyectilPrefab, bool abrirEscenaSiHaceFalta, bool verboso)
+        private static void ConfigurarEscena(GameObject proyectilPrefab, GameObject proyectilEmpujePrefab, bool abrirEscenaSiHaceFalta, bool verboso)
         {
             Scene escena = SceneManager.GetActiveScene();
 
@@ -324,7 +354,7 @@ namespace Broaster.EditorTools
             }
 
             ConfigurarVolumenDanio();
-            ConfigurarChef(proyectilPrefab);
+            ConfigurarChef(proyectilPrefab, proyectilEmpujePrefab);
 
             EditorSceneManager.MarkSceneDirty(escena);
             EditorSceneManager.SaveScene(escena);
@@ -373,7 +403,7 @@ namespace Broaster.EditorTools
             return AssetDatabase.LoadAssetAtPath<VolumeProfile>(RutaPerfil);
         }
 
-        private static void ConfigurarChef(GameObject proyectilPrefab)
+        private static void ConfigurarChef(GameObject proyectilPrefab, GameObject proyectilEmpujePrefab)
         {
             ChefAI chef = Object.FindAnyObjectByType<ChefAI>();
             if (chef == null)
@@ -385,6 +415,8 @@ namespace Broaster.EditorTools
             SerializedObject so = new SerializedObject(chef);
             SerializedProperty prop = so.FindProperty("proyectilPrefab");
             if (prop != null) prop.objectReferenceValue = proyectilPrefab;
+            prop = so.FindProperty("proyectilLanzarPrefab");
+            if (prop != null) prop.objectReferenceValue = proyectilEmpujePrefab;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorUtility.SetDirty(chef);

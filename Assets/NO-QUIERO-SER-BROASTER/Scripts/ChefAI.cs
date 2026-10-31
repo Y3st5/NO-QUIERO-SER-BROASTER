@@ -35,8 +35,10 @@ public class ChefAI : MonoBehaviour
     public float cooldownAtrapar = 1.5f;
 
     [Header("Lanzamiento")]
-    [Tooltip("Prefab del proyectil. Si está vacío, el Chef no lanza.")]
+    [Tooltip("Prefab del proyectil que deja charco. Si está vacío, el Chef no lo usa.")]
     public GameObject proyectilPrefab;
+    [Tooltip("Prefab del proyectil que lanza por los aires (empuje). Si está vacío, el Chef no lo usa.")]
+    public GameObject proyectilLanzarPrefab;
     [Tooltip("Punto desde el que sale el proyectil. Si está vacío se usa la posición del Chef + 1.5 m.")]
     public Transform puntoDeLanzamiento;
     [Tooltip("Altura a la que apunta sobre la base de la Paloma (la raíz está a los pies).")]
@@ -314,7 +316,10 @@ public class ChefAI : MonoBehaviour
     // ---------------- LANZAMIENTO ----------------
     private bool PuedeLanzar()
     {
-        if (proyectilPrefab == null || estaRecargandoProyectil)
+        if (estaRecargandoProyectil)
+            return false;
+
+        if (proyectilPrefab == null && proyectilLanzarPrefab == null)
             return false;
 
         float distancia = Vector3.Distance(transform.position, paloma.position);
@@ -346,7 +351,8 @@ public class ChefAI : MonoBehaviour
 
     private void Lanzar()
     {
-        if (proyectilPrefab == null)
+        GameObject prefabAUsar = ElegirProyectil();
+        if (prefabAUsar == null)
             return;
 
         Vector3 origen = OrigenLanzamiento();
@@ -368,18 +374,38 @@ public class ChefAI : MonoBehaviour
             ? Quaternion.LookRotation(velocidad, Vector3.up)
             : transform.rotation;
 
-        GameObject instancia = Instantiate(proyectilPrefab, origen, rotacion);
-        ProyectilChef proyectil = instancia.GetComponent<ProyectilChef>();
+        GameObject instancia = Instantiate(prefabAUsar, origen, rotacion);
 
-        if (proyectil != null)
-        {
-            proyectil.Inicializar(transform, velocidad);
-        }
+        ProyectilChef charco = instancia.GetComponent<ProyectilChef>();
+        ProyectilLanzamiento lanzamiento = instancia.GetComponent<ProyectilLanzamiento>();
+
+        if (charco != null)
+            charco.Inicializar(transform, velocidad);
+        else if (lanzamiento != null)
+            lanzamiento.Inicializar(transform, velocidad);
         else
         {
             Rigidbody cuerpo = instancia.GetComponent<Rigidbody>();
             if (cuerpo != null) cuerpo.linearVelocity = velocidad;
         }
+    }
+
+    /// <summary>
+    /// Elige qué proyectil lanzar. Si hay ambos, 70 % charco y 30 % empuje;
+    /// si solo hay uno asignado, usa ese.
+    /// </summary>
+    private GameObject ElegirProyectil()
+    {
+        bool hayCharco = proyectilPrefab != null;
+        bool hayEmpuje = proyectilLanzarPrefab != null;
+
+        if (hayCharco && hayEmpuje)
+            return Random.value < 0.7f ? proyectilPrefab : proyectilLanzarPrefab;
+
+        if (hayCharco) return proyectilPrefab;
+        if (hayEmpuje) return proyectilLanzarPrefab;
+
+        return null;
     }
 
 
@@ -528,7 +554,7 @@ public class ChefAI : MonoBehaviour
             puntoAnterior = puntoActual;
         }
 
-        if (proyectilPrefab == null)
+        if (proyectilPrefab == null && proyectilLanzarPrefab == null)
             return;
 
         Vector3 origen = OrigenLanzamiento();

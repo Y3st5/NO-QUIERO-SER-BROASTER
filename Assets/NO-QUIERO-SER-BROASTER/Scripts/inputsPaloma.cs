@@ -107,6 +107,9 @@ public class inputsPaloma : MonoBehaviour
     private float verticalVelocity;
     private float pitch;
 
+    // Estado de lanzamiento (cuando el Chef nos manda a volar)
+    private float finAturdimientoLanzamiento = -1f;
+
     // Ralentizacion por charcos
     private float factorRalentizacion = 1f;
     private float finRalentizacion = -1f;
@@ -236,6 +239,7 @@ public class inputsPaloma : MonoBehaviour
         horizontalVelocity = Vector3.zero;
         factorRalentizacion = 1f;
         finRalentizacion = -1f;
+        finAturdimientoLanzamiento = -1f;
         CurrentTarget = null;
         CurrentInteractable = null;
         CurrentPrompt = null;
@@ -246,6 +250,22 @@ public class inputsPaloma : MonoBehaviour
         HandleLook();
         HandleMovement();
         UpdateTarget();
+    }
+
+    /// <summary>
+    /// Lanza a la paloma por los aires y le quita el control temporalmente.
+    /// </summary>
+    public void LanzarAlAire(Vector3 impulso, float duracion)
+    {
+        finAturdimientoLanzamiento = Time.time + Mathf.Max(0f, duracion);
+
+        // La componente horizontal se aplica tal cual; la vertical la integra la gravedad.
+        horizontalVelocity = new Vector3(impulso.x, 0f, impulso.z);
+
+        // Garantizamos que salga hacia arriba al menos con esta fuerza (aunque esté cayendo).
+        verticalVelocity = Mathf.Max(verticalVelocity, impulso.y);
+
+        jumpRequested = false;
     }
 
     // ---------------- CAMARA ----------------
@@ -273,18 +293,35 @@ public class inputsPaloma : MonoBehaviour
         if (Time.time >= finRalentizacion)
             factorRalentizacion = 1f;
 
+        // Si estamos aturdidos por un lanzamiento, ignoramos el input del jugador
+        bool controlDesactivado = Time.time < finAturdimientoLanzamiento;
+
         float targetSpeed = (isSprinting ? sprintSpeed : walkSpeed) * (Ralentizada ? factorRalentizacion : 1f);
         Vector3 targetVelocity = (transform.right * input.x + transform.forward * input.y) * targetSpeed;
 
-        // Aceleracion suave
-        horizontalVelocity = Vector3.MoveTowards(
-            horizontalVelocity, targetVelocity, acceleration * targetSpeed * Time.deltaTime);
+        // Aceleracion suave (solo si tenemos control)
+        if (!controlDesactivado)
+        {
+            horizontalVelocity = Vector3.MoveTowards(
+                horizontalVelocity, targetVelocity, acceleration * targetSpeed * Time.deltaTime);
+        }
+        else
+        {
+            // Mientras estamos aturdidos, la velocidad horizontal decae lentamente para no volar infinitamente
+            horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, Vector3.zero, acceleration * Time.deltaTime);
+        }
 
         // Gravedad y salto
         if (controller.isGrounded && verticalVelocity < 0f)
-            verticalVelocity = -2f; // mantiene al personaje pegado al suelo
+        {
+            verticalVelocity = -2f;
 
-        if (jumpRequested && controller.isGrounded)
+            // Al aterrizar se recupera el control de inmediato
+            if (controlDesactivado)
+                finAturdimientoLanzamiento = -1f;
+        }
+
+        if (jumpRequested && controller.isGrounded && !controlDesactivado)
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
         jumpRequested = false;
 

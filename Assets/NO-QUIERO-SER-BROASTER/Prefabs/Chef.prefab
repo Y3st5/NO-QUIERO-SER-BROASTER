@@ -151,12 +151,13 @@ MonoBehaviour:
   distanciaAtrapar: 1.2
   cooldownAtrapar: 1.5
   proyectilPrefab: {fileID: 8278098229742518899, guid: b08f9856154344c4884b9f2eb9d081f1, type: 3}
+  proyectilLanzarPrefab: {fileID: 8278098229742518899, guid: 5a3d88e46c50f8040b1012978d8c2847, type: 3}
   puntoDeLanzamiento: {fileID: 0}
   alturaObjetivo: 1.2
   rangoMinLanzamiento: 4
   rangoMaxLanzamiento: 18
   velocidadNominal: 12
-  tiempoVueloMin: 0.6
+  tiempoVueloMin: 0.49
   tiempoVueloMax: 1.1
   cadenciaLanzamiento: 2.5
   tiempoPreparacion: 0.6
