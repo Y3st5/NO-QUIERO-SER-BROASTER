@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Sirenix.OdinInspector;
 
 /// <summary>
 /// Controlador en primera persona de la Paloma.
@@ -14,29 +15,28 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class inputsPaloma : MonoBehaviour
 {
-    [Header("Input")]
+    [Title("Configuración de Input")]
     [Tooltip("Arrastra aqui el asset InputSystem_Actions.")]
     [SerializeField] private InputActionAsset inputActions;
 
-    [Header("Referencias")]
+    [Title("Referencias")]
     [Tooltip("Camara hija del jugador (a la altura de los ojos).")]
     [SerializeField] private Transform cameraTransform;
 
-    [Header("Movimiento")]
+    [Title("Ajustes de Movimiento")]
     [SerializeField] private float walkSpeed = 4f;
     [SerializeField] private float sprintSpeed = 7f;
     [SerializeField] private float jumpHeight = 1.2f;
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float acceleration = 12f;
 
-    [Header("Camara")]
+    [Title("Ajustes de Cámara")]
     [SerializeField] private float mouseSensitivity = 0.1f;
     [SerializeField] private float gamepadSensitivity = 150f;
     [SerializeField] private float minPitch = -85f;
     [SerializeField] private float maxPitch = 85f;
-    [SerializeField] private bool lockCursor = true;
 
-    [Header("Interaccion")]
+    [Title("Sistema de Interacción")]
     [SerializeField] private float interactDistance = 3f;
     [SerializeField] private LayerMask interactLayers = ~0;
     [SerializeField] private bool drawDebugRay = true;
@@ -44,25 +44,18 @@ public class inputsPaloma : MonoBehaviour
     /// <summary>Se dispara al presionar Interact mirando un collider de interactLayers.</summary>
     public event Action<RaycastHit> OnInteract;
 
-    /// <summary>Collider que se esta mirando ahora mismo (null si no hay nada). Util para UI.</summary>
-    public Collider CurrentTarget { get; private set; }
+    [Title("Estado de Interacción")]
+    [ReadOnly] public Collider CurrentTarget { get; private set; }
+    [ReadOnly] public IInteractable CurrentInteractable { get; private set; }
+    [ReadOnly] public string CurrentPrompt { get; private set; }
 
-    /// <summary>Objeto interactuable que se esta mirando (null si no implementa IInteractable).</summary>
-    public IInteractable CurrentInteractable { get; private set; }
-
-    /// <summary>Texto del prompt del objeto mirado, o null. Util para UI.</summary>
-    public string CurrentPrompt { get; private set; }
-
-    /// <summary>Velocidad actual combinada (horizontal + vertical). La usa el Chef para predecir el movimiento.</summary>
-    public Vector3 Velocity => horizontalVelocity + Vector3.up * verticalVelocity;
-
-    /// <summary>Posicion de los ojos (camara), o la altura de pecho si no hay camara.</summary>
-    public Vector3 EyePosition => cameraTransform != null
+    [Title("Métricas de Movimiento")]
+    [ReadOnly] public Vector3 Velocity => horizontalVelocity + Vector3.up * verticalVelocity;
+    [ReadOnly] public Vector3 EyePosition => cameraTransform != null
         ? cameraTransform.position
         : transform.position + Vector3.up * 1.2f;
 
-    /// <summary>True mientras este pisando un charco.</summary>
-    public bool Ralentizada => Time.time < finRalentizacion;
+    [ReadOnly] public bool Ralentizada => Time.time < finRalentizacion;
 
     /// <summary>
     /// Aplica una ralentizacion temporal (factor 0.45 = 45 % de la velocidad normal).

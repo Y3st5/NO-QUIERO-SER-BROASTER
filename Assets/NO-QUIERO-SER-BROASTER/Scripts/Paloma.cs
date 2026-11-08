@@ -1,6 +1,7 @@
 using System;
 using MoreMountains.Feedbacks;
 using UnityEngine;
+using Sirenix.OdinInspector;
 
 /// <summary>
 /// Vidas de la Paloma (3 por defecto).
@@ -8,26 +9,31 @@ using UnityEngine;
 /// </summary>
 public class Paloma : MonoBehaviour
 {
-    [Header("Vidas")]
-    [SerializeField] private int vidasMax = 3;
+    [Title("Configuración de Vidas")]
+    [SerializeField]
+    [MinValue(1)]
+    private int vidasMax = 3;
 
     [Tooltip("Segundos de invulnerabilidad tras recibir un golpe.")]
-    [SerializeField] private float invulnerabilidad = 1f;
+    [SerializeField]
+    private float invulnerabilidad = 1f;
 
-    [Header("Feedback de daño (Feel)")]
+    [Title("Feedback de Daño (Feel)")]
     [Tooltip("Se reproduce al recibir daño: parpadeo rojo + sacudida de cámara.")]
-    [SerializeField] public MMF_Player damageFeedback;
+    [SerializeField]
+    public MMF_Player damageFeedback;
 
-    /// <summary>Vidas actuales.</summary>
+    [Title("Estado Actual")]
+    [ReadOnly]
     public int Vidas { get; private set; }
 
-    /// <summary>Vidas máximas configuradas.</summary>
+    [ReadOnly]
     public int VidasMax => vidasMax;
 
-    /// <summary>True cuando ya no quedan vidas.</summary>
+    [ReadOnly]
     public bool Derrotada { get; private set; }
 
-    /// <summary>True mientras el jugador no puede recibir daño.</summary>
+    [ReadOnly]
     public bool Invulnerable => Time.time < finInvulnerabilidad;
 
     /// <summary>(vidasActuales, vidasMax) cada vez que cambian las vidas.</summary>
@@ -35,7 +41,6 @@ public class Paloma : MonoBehaviour
 
     /// <summary>Se dispara una sola vez al llegar a 0 vidas.</summary>
     public event Action OnDerrota;
-
 
     private float finInvulnerabilidad = -1f;
 
@@ -51,6 +56,7 @@ public class Paloma : MonoBehaviour
     /// Quita vidas si el jugador no está derrotado ni invulnerable.
     /// Devuelve true si el golpe se aplicó.
     /// </summary>
+    [Button("Simular Daño")]
     public bool RecibirDanio(int cantidad = 1)
     {
         if (Derrotada || Invulnerable || cantidad <= 0)
@@ -74,7 +80,7 @@ public class Paloma : MonoBehaviour
     {
         if (Derrotada)
             return;
-
+                
         Derrotada = true;
 
         // El GameManager ahora se encarga de los inputs, el cursor y la IA.

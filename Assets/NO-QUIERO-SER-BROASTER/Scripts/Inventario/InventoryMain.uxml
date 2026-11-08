@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <Style src="project://database/Assets/NO-QUIERO-SER-BROASTER/Scripts/Inventario/InventoryStyle.uss?fileID=7433441132597879392&amp;guid=f0ff8e7ca69ca614bbc5670fc4a1df1d&amp;type=3#InventoryStyle" />
+    <ui:VisualElement name="InventoryRoot" class="inventory-root" picking-mode="Ignore">
+        <ui:Label name="ItemNameLabel" class="item-name-label" text="" />
+        <ui:VisualElement name="Hotbar" class="hotbar">
+            <ui:VisualElement name="SlotContainer" class="slot-container" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

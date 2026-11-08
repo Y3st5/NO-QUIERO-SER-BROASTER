@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31068cefdacb3fa4283134ec9754bba7, type: 3}
+  m_Name: LlavePuerta
+  m_EditorClassIdentifier: Assembly-CSharp::ItemLlave
+  id: eab82252-7cdd-49da-b9be-6dc585a4367e
+  nombre: Llave de la puerta principal
+  descripcion: Llave de la puerta principal que se usara para abrir la puerta  de la cocina y escapar
+  icono: {fileID: 0}
+  maxStack: 1
+  esConsumible: 0
+  codigoDeCerradura: 
+  seConsumeAlUsar: 1

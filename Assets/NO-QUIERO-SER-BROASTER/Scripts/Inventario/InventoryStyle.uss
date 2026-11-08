@@ -1,0 +1,133 @@
+/* ============================================================
+   INVENTARIO ESTILO MINECRAFT (HOTBAR)
+   ============================================================ */
+
+/* Contenedor a pantalla completa: coloca la hotbar abajo y centrada */
+.inventory-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 24px;
+}
+
+/* Nombre del ítem seleccionado (aparece encima de la hotbar) */
+.item-name-label {
+    margin-bottom: 8px;
+    padding: 4px 14px;
+    background-color: rgba(0, 0, 0, 0.65);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: rgb(255, 255, 255);
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.15s;
+}
+
+.item-name-label.visible {
+    opacity: 1;
+}
+
+/* Marco oscuro de la hotbar */
+.hotbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background-color: rgba(16, 16, 16, 0.85);
+    border-width: 2px;
+    border-color: rgb(5, 5, 5);
+    border-radius: 4px;
+}
+
+/* Fila de slots */
+.slot-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+/* Slot clásico de Minecraft: gris con bisel oscuro arriba/izquierda
+   y claro abajo/derecha */
+.hotbar-slot {
+    width: 56px;
+    height: 56px;
+    background-color: rgb(139, 139, 139);
+    border-width: 2px;
+    border-left-color: rgb(55, 55, 55);
+    border-top-color: rgb(55, 55, 55);
+    border-right-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hotbar-slot:hover {
+    background-color: rgb(158, 158, 158);
+}
+
+/* Slot seleccionado: borde blanco completo + fondo más claro */
+.hotbar-slot.is-selected {
+    background-color: rgb(198, 198, 198);
+    border-left-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+}
+
+/* Icono del ítem: se ajusta sin deformarse */
+.item-icon {
+    width: 44px;
+    height: 44px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Letra de respaldo cuando un ítem todavía no tiene sprite asignado */
+.item-fallback {
+    color: rgb(40, 40, 40);
+    font-size: 24px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* Cantidad (esquina inferior derecha, con sombra para que se lea) */
+.item-quantity {
+    position: absolute;
+    bottom: -2px;
+    right: 3px;
+    color: rgb(255, 255, 255);
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: lower-right;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.95),
+                 -1px -1px 0 rgba(0, 0, 0, 0.95),
+                 1px -1px 0 rgba(0, 0, 0, 0.95),
+                 -1px 1px 0 rgba(0, 0, 0, 0.95);
+}
+
+/* Número de tecla del slot (1..9, 0) */
+.slot-key {
+    position: absolute;
+    top: 0;
+    left: 3px;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: upper-left;
+}
+
+.hotbar-slot.is-selected .slot-key {
+    color: rgba(0, 0, 0, 0.65);
+}
