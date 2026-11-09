@@ -5,7 +5,6 @@ using Sirenix.OdinInspector;
 
 /// <summary>
 /// Representa un espacio individual dentro del inventario.
-/// Al ser [Serializable], Unity puede guardarlo y mostrarlo en el inspector.
 /// </summary>
 [Serializable]
 public class SlotInventario
@@ -30,47 +29,144 @@ public class SlotInventario
 }
 
 /// <summary>
-/// El núcleo de datos del inventario. Va colocado directamente en el Player (Paloma).
+/// Nodo para la lista circular doblemente enlazada del inventario.
+/// </summary>
+[Serializable]
+public class NodoInventario
+{
+    public SlotInventario slot = new SlotInventario();
+    [NonSerialized] public NodoInventario siguiente;
+    [NonSerialized] public NodoInventario anterior;
+}
+
+/// <summary>
+/// El núcleo del inventario implementado como una Lista Circular Doblemente Enlazada.
 /// </summary>
 public class Inventario : MonoBehaviour
 {
     [Title("Configuración")]
     [MinValue(1)]
-    public int capacidad = 10;
+    public int capacidad = 4;
 
     [Title("Estado Actual")]
-    [TableList(AlwaysExpanded = true, IsReadOnly = true)]
-    public List<SlotInventario> slots = new List<SlotInventario>();
+    [ReadOnly]
+    [NonSerialized]
+    public NodoInventario nodoActual;
 
     // Evento al que la Interfaz de Usuario (UI) se suscribirá
     public event Action AlCambiarInventario;
 
     private void Awake()
     {
-        // Creamos los slots vacíos al iniciar el juego
-        for (int i = 0; i < capacidad; i++)
-        {
-            slots.Add(new SlotInventario());
-        }
+        AsegurarInicializado();
     }
 
     /// <summary>
-    /// Intenta añadir un ítem. Devuelve true si hubo espacio, false si el inventario está lleno.
+    /// Construye la lista circular si todavía no existe.
+    /// Permite usar el inventario también en el editor (donde Awake no se ejecuta)
+    /// sin reconstruirla y perder los ítems ya guardados.
+    /// </summary>
+    public void AsegurarInicializado()
+    {
+        if (nodoActual == null)
+            InicializarListaCircular();
+    }
+
+    private void InicializarListaCircular()
+    {
+        if (capacidad < 1) return;
+
+        NodoInventario primero = null;
+        NodoInventario ultimo = null;
+
+        for (int i = 0; i < capacidad; i++)
+        {
+            NodoInventario nuevoNodo = new NodoInventario();
+            if (primero == null)
+            {
+                primero = nuevoNodo;
+                ultimo = nuevoNodo;
+            }
+            else
+            {
+                ultimo.siguiente = nuevoNodo;
+                nuevoNodo.anterior = ultimo;
+                ultimo = nuevoNodo;
+            }
+        }
+
+        // Cerrar el círculo
+        ultimo.siguiente = primero;
+        primero.anterior = ultimo;
+
+        nodoActual = primero;
+    }
+
+    /// <summary>
+    /// Convierte la lista circular en una lista simple para que la UI pueda iterar sobre ella.
+    /// </summary>
+    public List<SlotInventario> GetSlotsForUI()
+    {
+        List<SlotInventario> listaUI = new List<SlotInventario>();
+        AsegurarInicializado();
+        if (nodoActual == null) return listaUI;
+
+        NodoInventario buscador = nodoActual;
+        for (int i = 0; i < capacidad; i++)
+        {
+            listaUI.Add(buscador.slot);
+            buscador = buscador.siguiente;
+        }
+        return listaUI;
+    }
+
+    /// <summary>
+    /// Mueve la selección al siguiente slot.
+    /// </summary>
+    [Button(ButtonSizes.Small)]
+    public void Siguiente()
+    {
+        AsegurarInicializado();
+        if (nodoActual == null) return;
+        nodoActual = nodoActual.siguiente;
+        AlCambiarInventario?.Invoke();
+    }
+
+    /// <summary>
+    /// Mueve la selección al slot anterior.
+    /// </summary>
+    [Button(ButtonSizes.Small)]
+    public void Anterior()
+    {
+        AsegurarInicializado();
+        if (nodoActual == null) return;
+        nodoActual = nodoActual.anterior;
+        AlCambiarInventario?.Invoke();
+    }
+
+    /// <summary>
+    /// Intenta añadir un ítem. Recorre la lista circular buscando espacio.
     /// </summary>
     [Button(ButtonSizes.Medium), GUIColor(0.4f, 0.8f, 1f)]
     public bool AnadirItem(Item nuevoItem, int cantidadAAgregar = 1)
     {
         if (nuevoItem == null || cantidadAAgregar <= 0) return false;
 
-        // 1. Buscamos si ya tenemos este ítem y podemos apilarlo
-        foreach (SlotInventario slot in slots)
+        AsegurarInicializado();
+        if (nodoActual == null) return false;
+
+        NodoInventario buscador = nodoActual;
+        int visitados = 0;
+
+        // 1. Intentar apilar en slots existentes recorriendo el círculo
+        do
         {
-            if (slot.PuedeApilar(nuevoItem))
+            if (buscador.slot.PuedeApilar(nuevoItem))
             {
-                int espacioDisponible = nuevoItem.maxStack - slot.cantidad;
+                int espacioDisponible = nuevoItem.maxStack - buscador.slot.cantidad;
                 int cantidadAInsertar = Mathf.Min(cantidadAAgregar, espacioDisponible);
 
-                slot.cantidad += cantidadAInsertar;
+                buscador.slot.cantidad += cantidadAInsertar;
                 cantidadAAgregar -= cantidadAInsertar;
 
                 if (cantidadAAgregar == 0)
@@ -79,55 +175,64 @@ public class Inventario : MonoBehaviour
                     return true;
                 }
             }
-        }
+            buscador = buscador.siguiente;
+            visitados++;
+        } while (visitados < capacidad);
 
-        // 2. Si sobra cantidad, buscamos slots vacíos
-        while (cantidadAAgregar > 0)
+        // 2. Buscar slots vacíos recorriendo el círculo
+        buscador = nodoActual;
+        visitados = 0;
+        while (cantidadAAgregar > 0 && visitados < capacidad)
         {
-            SlotInventario slotVacio = slots.Find(s => s.item == null);
-            if (slotVacio != null)
+            if (buscador.slot.item == null)
             {
-                slotVacio.item = nuevoItem;
+                buscador.slot.item = nuevoItem;
                 int cantidadAInsertar = Mathf.Min(cantidadAAgregar, nuevoItem.maxStack);
-
-                slotVacio.cantidad = cantidadAInsertar;
+                buscador.slot.cantidad = cantidadAInsertar;
                 cantidadAAgregar -= cantidadAInsertar;
             }
-            else
-            {
-                AlCambiarInventario?.Invoke();
-                return false; // Inventario lleno
-            }
+            buscador = buscador.siguiente;
+            visitados++;
         }
 
         AlCambiarInventario?.Invoke();
-        return true;
+        return cantidadAAgregar == 0;
     }
 
     /// <summary>
-    /// Quita una cantidad específica de un ítem.
+    /// Quita una cantidad específica de un ítem recorriendo la lista.
     /// </summary>
     public bool QuitarItem(Item itemAQuitar, int cantidadAQuitar = 1)
     {
-        for (int i = 0; i < slots.Count; i++)
-        {
-            if (slots[i].item == itemAQuitar)
-            {
-                if (slots[i].cantidad >= cantidadAQuitar)
-                {
-                    slots[i].cantidad -= cantidadAQuitar;
-                    if (slots[i].cantidad == 0) slots[i].Vaciar();
+        if (itemAQuitar == null) return false;
 
+        AsegurarInicializado();
+        if (nodoActual == null) return false;
+
+        NodoInventario buscador = nodoActual;
+        int visitados = 0;
+        int cantidadInicial = cantidadAQuitar;
+
+        do
+        {
+            if (buscador.slot.item == itemAQuitar)
+            {
+                if (buscador.slot.cantidad >= cantidadAQuitar)
+                {
+                    buscador.slot.cantidad -= cantidadAQuitar;
+                    if (buscador.slot.cantidad == 0) buscador.slot.Vaciar();
                     AlCambiarInventario?.Invoke();
                     return true;
                 }
                 else
                 {
-                    cantidadAQuitar -= slots[i].cantidad;
-                    slots[i].Vaciar();
+                    cantidadAQuitar -= buscador.slot.cantidad;
+                    buscador.slot.Vaciar();
                 }
             }
-        }
+            buscador = buscador.siguiente;
+            visitados++;
+        } while (visitados < capacidad && cantidadAQuitar > 0);
 
         AlCambiarInventario?.Invoke();
         return cantidadAQuitar == 0;

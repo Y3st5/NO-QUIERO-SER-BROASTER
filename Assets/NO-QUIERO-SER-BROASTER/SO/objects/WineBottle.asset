@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: WineBottle
   m_EditorClassIdentifier: Assembly-CSharp::ItemWineBottle
   id: 6ad65138-4026-438d-b5dd-cc83f0528406
-  nombre: 
-  descripcion: 
+  nombre: Botella de Vino
+  descripcion: Una botella de vino. Puede beberse para recuperar vida.
   icono: {fileID: 0}
   maxStack: 1
   esConsumible: 0

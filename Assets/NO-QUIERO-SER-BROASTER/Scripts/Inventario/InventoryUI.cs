@@ -142,12 +142,13 @@ public class InventoryUI : MonoBehaviour
         slotContainer.Clear();
         slotElements.Clear();
 
-        int total = inventory.slots.Count;
+        List<SlotInventario> slots = inventory.GetSlotsForUI();
+        int total = slots.Count;
         int toShow = slotsVisibles <= 0 ? total : Mathf.Min(slotsVisibles, total);
 
         for (int i = 0; i < toShow; i++)
         {
-            VisualElement slot = CreateSlotElement(inventory.slots[i], i);
+            VisualElement slot = CreateSlotElement(slots[i], i);
             slotContainer.Add(slot);
             slotElements.Add(slot);
         }
@@ -259,10 +260,11 @@ public class InventoryUI : MonoBehaviour
     {
         get
         {
-            if (inventory == null || selectedIndex < 0 || selectedIndex >= inventory.slots.Count)
+            List<SlotInventario> slots = inventory.GetSlotsForUI();
+            if (inventory == null || selectedIndex < 0 || selectedIndex >= slots.Count)
                 return null;
 
-            return inventory.slots[selectedIndex];
+            return slots[selectedIndex];
         }
     }
 
